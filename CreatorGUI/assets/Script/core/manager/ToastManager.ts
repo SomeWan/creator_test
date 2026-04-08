@@ -1,12 +1,13 @@
 import { ToastOptions, ToastRenderer } from "../component/Toast";
 import { Log } from "../utils/Log";
+import { Node, isValid, v3, director, Canvas, UITransform, view } from 'cc';
 
 export class ToastManager {
-    private static rootNode: cc.Node = null;
-    private static activeToasts: cc.Node[] = [];
+    private static rootNode: Node = null;
+    private static activeToasts: Node[] = [];
 
     public static initialize(): void {
-        if (!this.rootNode || !cc.isValid(this.rootNode)) {
+        if (!this.rootNode || !isValid(this.rootNode)) {
             this.rootNode = this.ensureRootNode();
         }
     }
@@ -19,13 +20,13 @@ export class ToastManager {
 
         const toast = ToastRenderer.create(message, { message, duration });
         toast.parent = this.rootNode;
-        toast.setPosition(cc.v3(0, -this.activeToasts.length * 90 - 110, 0));
+        toast.setPosition(v3(0, -this.activeToasts.length * 90 - 110, 0));
         this.activeToasts.push(toast);
 
         const removeToast = () => {
             const index = this.activeToasts.indexOf(toast);
             if (index >= 0) this.activeToasts.splice(index, 1);
-            if (cc.isValid(toast)) {
+            if (isValid(toast)) {
                 toast.destroy();
             }
             this.relayoutToasts();
@@ -37,7 +38,7 @@ export class ToastManager {
 
     public static clearAll(): void {
         this.activeToasts.forEach((toast) => {
-            if (cc.isValid(toast)) {
+            if (isValid(toast)) {
                 toast.destroy();
             }
         });
@@ -46,31 +47,32 @@ export class ToastManager {
 
     private static relayoutToasts(): void {
         this.activeToasts.forEach((toast, index) => {
-            if (cc.isValid(toast)) {
-                toast.setPosition(cc.v3(0, -index * 90 - 110, 0));
+            if (isValid(toast)) {
+                toast.setPosition(v3(0, -index * 90 - 110, 0));
             }
         });
     }
 
-    private static ensureRootNode(): cc.Node {
-        const scene = cc.director.getScene();
+    private static ensureRootNode(): Node {
+        const scene = director.getScene();
         if (!scene) {
             throw new Error("ToastManager requires an active scene.");
         }
 
         let canvas = scene.getChildByName("Canvas");
         if (!canvas) {
-            canvas = new cc.Node("Canvas");
-            canvas.addComponent(cc.Canvas);
+            canvas = new Node("Canvas");
+            canvas.addComponent(Canvas);
             scene.addChild(canvas);
         }
 
         let root = canvas.getChildByName("ToastRoot");
         if (!root) {
-            root = new cc.Node("ToastRoot");
-            root.setContentSize(cc.winSize);
+            root = new Node("ToastRoot");
+            const uiTransform = root.addComponent(UITransform);
+            uiTransform.contentSize = view.getVisibleSize();
             root.parent = canvas;
-            root.setPosition(cc.v2(0, 0));
+            root.setPosition(v3(0, 0, 0));
         }
 
         return root;

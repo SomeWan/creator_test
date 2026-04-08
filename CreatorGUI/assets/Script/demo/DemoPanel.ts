@@ -5,26 +5,27 @@
 import BasePanel from "../core/base/BasePanel";
 import DemoViewModel from "./DemoViewModel";
 import { bindLabel, UIManager, DialogManager } from "../core/Global";
+import { _decorator, Label, Button, Node } from 'cc';
 
-const { ccclass, property, menu } = cc._decorator;
+const { ccclass, property, menu } = _decorator;
 
 @ccclass
 @menu("demo/DemoPanel")
 export class DemoPanel extends BasePanel {
-    @property(cc.Label)
-    titleLabel: cc.Label = null;
+    @property(Label)
+    titleLabel: Label = null;
 
-    @property(cc.Label)
-    counterLabel: cc.Label = null;
+    @property(Label)
+    counterLabel: Label = null;
 
-    @property(cc.Button)
-    closeButton: cc.Button = null;
+    @property(Button)
+    closeButton: Button = null;
 
-    @property(cc.Button)
-    confirmButton: cc.Button = null;
+    @property(Button)
+    confirmButton: Button = null;
 
-    @property(cc.Button)
-    inputButton: cc.Button = null;
+    @property(Button)
+    inputButton: Button = null;
 
     protected viewModel: DemoViewModel = null;
 
@@ -37,13 +38,13 @@ export class DemoPanel extends BasePanel {
         bindLabel(this.counterLabel, this.viewModel.message);
 
         if (this.closeButton) {
-            this.closeButton.node.on(cc.Node.EventType.TOUCH_END, () => this.close(), this);
+            this.closeButton.node.on(Node.EventType.TOUCH_END, () => this.close(), this);
         }
         if (this.confirmButton) {
-            this.confirmButton.node.on(cc.Node.EventType.TOUCH_END, () => this.onConfirm(), this);
+            this.confirmButton.node.on(Node.EventType.TOUCH_END, () => this.onConfirm(), this);
         }
         if (this.inputButton) {
-            this.inputButton.node.on(cc.Node.EventType.TOUCH_END, () => this.onShowDialog(), this);
+            this.inputButton.node.on(Node.EventType.TOUCH_END, () => this.onShowDialog(), this);
         }
     }
 

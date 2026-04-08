@@ -2,8 +2,9 @@ import BaseView from "./BaseView";
 import { ViewModel } from "../mvvm/ViewModel";
 import { EventBus } from "../events/EventBus";
 import { Log } from "../utils/Log";
+import { _decorator, view, UITransform } from 'cc';
 
-const { ccclass } = cc._decorator;
+const { ccclass } = _decorator;
 
 export interface SceneConfig {
     sceneName?: string;
@@ -26,14 +27,15 @@ export default class BaseScene extends BaseView {
         if (config.viewModel) {
             this.bindViewModel(config.viewModel);
         }
-        cc.view.on("canvas-resize", this.onCanvasResize, this);
+        view.on("canvas-resize", this.onCanvasResize, this);
         this.onCanvasResize();
     }
 
     protected onCanvasResize(): void {
         if (this.node) {
-            const size = cc.view.getVisibleSize();
-            this.node.setContentSize(size);
+            const size = view.getVisibleSize();
+            const uiTransform = this.node.getComponent(UITransform) || this.node.addComponent(UITransform);
+            uiTransform.setContentSize(size);
         }
     }
 

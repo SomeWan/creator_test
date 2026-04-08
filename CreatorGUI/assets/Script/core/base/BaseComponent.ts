@@ -1,6 +1,7 @@
 import BaseView from "./BaseView";
+import { _decorator } from 'cc';
 
-const { ccclass } = cc._decorator;
+const { ccclass } = _decorator;
 
 @ccclass
 export default class BaseComponent extends BaseView {

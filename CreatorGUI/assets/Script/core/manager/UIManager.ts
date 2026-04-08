@@ -2,6 +2,7 @@ import BasePanel from "../base/BasePanel";
 import { ResourceLoader } from "../utils/ResourceLoader";
 import { generateId } from "../utils/UID";
 import { Log } from "../utils/Log";
+import { Node, isValid, instantiate, UITransform, Canvas, director, v3, view } from 'cc';
 
 export interface PanelOptions {
     panelScriptName: string;
@@ -22,11 +23,19 @@ interface PanelRecord {
 }
 
 export class UIManager {
-    private static rootNode: cc.Node = null;
+    private static rootNode: Node | null = null;
     private static panelRecords: PanelRecord[] = [];
 
-    public static initialize(): void {
+    public static initialize(): Node {
         this.rootNode = this.ensureRootNode();
+        return this.rootNode;
+    }
+
+    public static getRootNode(): Node {
+        if (!this.rootNode) {
+            return this.initialize();
+        }
+        return this.rootNode;
     }
 
     public static async openPanel(options: PanelOptions): Promise<BasePanel> {
@@ -38,19 +47,26 @@ export class UIManager {
         }
 
         const existing = this.panelRecords.find((record) => record.panel.name === options.panelScriptName && options.single);
-        if (existing && cc.isValid(existing.panel.node)) {
+        if (existing && isValid(existing.panel.node)) {
             existing.panel.node.active = true;
             existing.panel.show(options);
             return existing.panel;
         }
 
         const prefab = await ResourceLoader.loadPrefab(options.prefabPath);
-        const node = cc.instantiate(prefab);
+        const node = instantiate(prefab) as unknown as Node;
         node.name = options.panelScriptName;
-        node.setParent(this.rootNode);
-        node.setSiblingIndex(this.rootNode.childrenCount - 1);
+        node.parent = this.rootNode;
+        node.setSiblingIndex(Math.max(0, this.rootNode!.children.length - 1));
 
-        const panel = node.getComponent(options.panelScriptName) as BasePanel;
+        let panel = node.getComponent(options.panelScriptName) as unknown as BasePanel;
+        if (!panel) {
+            const children = node.children;
+            for (const child of children) {
+                panel = child.getComponent(options.panelScriptName) as unknown as BasePanel;
+                if (panel) break;
+            }
+        }
         if (!panel) {
             node.destroy();
             throw new Error(`Panel component ${options.panelScriptName} not found on prefab ${options.prefabPath}`);
@@ -84,7 +100,7 @@ export class UIManager {
             return;
         }
         const record = this.panelRecords[index];
-        if (cc.isValid(record.panel.node)) {
+        if (isValid(record.panel.node)) {
             record.panel.node.destroy();
         }
         this.panelRecords.splice(index, 1);
@@ -109,7 +125,7 @@ export class UIManager {
 
     public static closeAll(): void {
         this.panelRecords.forEach((record) => {
-            if (cc.isValid(record.panel.node)) {
+            if (isValid(record.panel.node)) {
                 record.panel.node.destroy();
             }
         });
@@ -120,21 +136,22 @@ export class UIManager {
         return this.panelRecords.map((record) => record.panel);
     }
 
-    private static ensureRootNode(): cc.Node {
-        const scene = cc.director.getScene();
+    private static ensureRootNode(): Node {
+        const scene = director.getScene()!;
         let canvas = scene.getChildByName("Canvas");
         if (!canvas) {
-            canvas = new cc.Node("Canvas");
-            canvas.addComponent(cc.Canvas);
+            canvas = new Node("Canvas");
+            canvas.addComponent(Canvas);
             scene.addChild(canvas);
         }
         let root = canvas.getChildByName("UIRoot");
         if (!root) {
-            root = new cc.Node("UIRoot");
-            const transform = root.addComponent(cc.UITransform);
-            transform.setContentSize(cc.winSize);
+            root = new Node("UIRoot");
+            const transform = root.addComponent(UITransform);
+            const screenSize = view.getDesignResolutionSize();
+            transform.contentSize = screenSize;
             root.parent = canvas;
-            root.setPosition(cc.v3(0, 0, 0));
+            root.setPosition(v3(0, 0, 0));
         }
         return root;
     }
@@ -142,7 +159,7 @@ export class UIManager {
     private static sortPanels(): void {
         this.panelRecords.sort((a, b) => a.priority - b.priority);
         this.panelRecords.forEach((record, index) => {
-            if (cc.isValid(record.panel.node)) {
+            if (isValid(record.panel.node)) {
                 record.panel.node.setSiblingIndex(index);
             }
         });

@@ -6,20 +6,21 @@
 import BasePanel from "../core/base/BasePanel";
 import { bindLabel, TypedEventBus, EventKeys, getPanelConfig } from "../core/Global";
 import DemoViewModel from "./DemoViewModel";
+import { _decorator, Label, Button, Node } from 'cc';
 
-const { ccclass, property, menu } = cc._decorator;
+const { ccclass, property, menu } = _decorator;
 
 @ccclass
 @menu("demo/DemoSafePanel")
 export class DemoSafePanel extends BasePanel {
-    @property(cc.Label)
-    titleLabel: cc.Label = null;
+    @property(Label)
+    titleLabel: Label = null;
 
-    @property(cc.Label)
-    counterLabel: cc.Label = null;
+    @property(Label)
+    counterLabel: Label = null;
 
-    @property(cc.Button)
-    closeButton: cc.Button = null;
+    @property(Button)
+    closeButton: Button = null;
 
     protected viewModel: DemoViewModel = null;
 
@@ -32,7 +33,7 @@ export class DemoSafePanel extends BasePanel {
         bindLabel(this.counterLabel, this.viewModel.message);
 
         if (this.closeButton) {
-            this.closeButton.node.on(cc.Node.EventType.TOUCH_END, () => this.close(), this);
+            this.closeButton.node.on(Node.EventType.TOUCH_END, () => this.close(), this);
         }
 
         // ✅ 使用强类型事件总线，获得类型安全

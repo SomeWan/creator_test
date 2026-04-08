@@ -5,20 +5,21 @@
 import BaseScene from "../core/base/BaseScene";
 import DemoViewModel from "./DemoViewModel";
 import { UIManager, EventBus, bindLabel, bindNodeActive, ToastManager } from "../core/Global";
+import { _decorator, Label, Node, Button } from 'cc';
 
-const { ccclass, property, menu } = cc._decorator;
+const { ccclass, property, menu } = _decorator;
 
 @ccclass
 @menu("demo/DemoScene")
 export class DemoScene extends BaseScene {
-    @property(cc.Label)
-    titleLabel: cc.Label = null;
+    @property(Label)
+    titleLabel: Label = null;
 
-    @property(cc.Node)
-    panelHint: cc.Node = null;
+    @property(Node)
+    panelHint: Node = null;
 
-    @property(cc.Button)
-    openPanelButton: cc.Button = null;
+    @property(Button)
+    openPanelButton: Button = null;
 
     protected viewModel: DemoViewModel = null;
 
@@ -30,7 +31,7 @@ export class DemoScene extends BaseScene {
 
     protected start(): void {
         if (this.openPanelButton) {
-            this.openPanelButton.node.on(cc.Node.EventType.TOUCH_END, this.onOpenPanelClick, this);
+            this.openPanelButton.node.on(Node.EventType.TOUCH_END, this.onOpenPanelClick, this);
         }
 
         bindLabel(this.titleLabel, this.viewModel.title);

@@ -1,10 +1,11 @@
 import { EventBus } from "../events/EventBus";
 import { Log } from "../utils/Log";
+import { director, Scene } from 'cc';
 
 export class SceneManager {
     public static async loadScene(sceneName: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            cc.director.loadScene(sceneName, (err) => {
+            director.loadScene(sceneName, (err) => {
                 if (err) {
                     Log.error("SceneManager", "loadScene error", err);
                     reject(err);
@@ -16,8 +17,8 @@ export class SceneManager {
         });
     }
 
-    public static getCurrentScene(): cc.Scene | null {
-        return cc.director.getScene();
+    public static getCurrentScene(): Scene | null {
+        return director.getScene();
     }
 
     public static publishReady(): void {

@@ -1,11 +1,12 @@
 import { ViewModel } from "../mvvm/ViewModel";
 import { ObservableProperty } from "../mvvm/Observable";
 import { Log } from "../utils/Log";
+import { _decorator, Component } from 'cc';
 
-const { ccclass } = cc._decorator;
+const { ccclass } = _decorator;
 
 @ccclass
-export default class BaseView extends cc.Component {
+export default class BaseView extends Component {
     protected viewId: string = "";
     protected viewModel: ViewModel = null;
     private bindings: Array<() => void> = [];

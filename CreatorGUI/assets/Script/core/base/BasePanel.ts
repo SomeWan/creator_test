@@ -1,8 +1,20 @@
 import BaseView from "./BaseView";
 import { UIManager, PanelOptions } from "../manager/UIManager";
 import { Log } from "../utils/Log";
+import {
+    _decorator,
+    Node,
+    UITransform,
+    Graphics,
+    Color,
+    BlockInputEvents,
+    v3,
+    isValid,
+    view,
+    EventTouch
+} from 'cc';
 
-const { ccclass } = cc._decorator;
+const { ccclass } = _decorator;
 
 export interface PanelConfig extends PanelOptions {
     title?: string;
@@ -11,8 +23,9 @@ export interface PanelConfig extends PanelOptions {
 @ccclass
 export default class BasePanel extends BaseView {
     public panelId: string = "";
-    public config: PanelConfig = null;
-    protected overlayNode: cc.Node = null;
+    public config: PanelConfig | undefined = undefined;
+    public customData: any = null;
+    protected overlayNode: Node | null = null;
 
     protected onLoad(): void {
         super.onLoad();
@@ -26,7 +39,7 @@ export default class BasePanel extends BaseView {
     }
 
     public async hide(): Promise<void> {
-        if (this.overlayNode && cc.isValid(this.overlayNode)) {
+        if (this.overlayNode && isValid(this.overlayNode)) {
             this.overlayNode.destroy();
             this.overlayNode = null;
         }
@@ -46,32 +59,41 @@ export default class BasePanel extends BaseView {
             return;
         }
 
-        const overlay = new cc.Node("PanelOverlay");
-        const transform = overlay.addComponent(cc.UITransform);
-        transform.setContentSize(cc.winSize);
-        transform.setAnchorPoint(0.5, 0.5);
+        // 创建遮罩节点
+        const overlay = new Node("PanelOverlay");
+        const transform = overlay.addComponent(UITransform);
+        const screenSize = view.getDesignResolutionSize();
+        transform.contentSize = screenSize;
+        transform.anchorPoint.set(0.5, 0.5);
 
-        const graphics = overlay.addComponent(cc.Graphics);
-        const color = new cc.Color(0, 0, 0, this.config.maskOpacity ?? 180);
-        graphics.clear();
+        // 绘制半透明背景
+        const graphics = overlay.addComponent(Graphics);
+        const maskOpacity = Math.max(0, Math.min(255, this.config.maskOpacity ?? 180));
+        const color = new Color(0, 0, 0, maskOpacity);
         graphics.fillColor = color;
-        graphics.rect(-cc.winSize.width / 2, -cc.winSize.height / 2, cc.winSize.width, cc.winSize.height);
+        graphics.rect(-screenSize.width / 2, -screenSize.height / 2, screenSize.width, screenSize.height);
         graphics.fill();
 
-        overlay.addComponent(cc.BlockInputEvents);
-        overlay.parent = this.node.parent || this.node;
-        overlay.setSiblingIndex(this.node.getSiblingIndex());
-        overlay.setPosition(cc.v3(0, 0, 0));
-        overlay.on(cc.Node.EventType.TOUCH_END, () => {
-            if (this.config.dismissOnMaskTap) {
+        // 添加输入事件阻挡
+        overlay.addComponent(BlockInputEvents);
+
+        // 将遮罩添加到 UIRoot 或指定的容器
+        const uiRoot = UIManager.getRootNode();
+        overlay.parent = uiRoot;
+        overlay.setPosition(v3(0, 0, 0));
+
+        // 绑定点击遮罩关闭事件
+        overlay.on(Node.EventType.TOUCH_END, () => {
+            if (this.config?.dismissOnMaskTap) {
                 this.close();
             }
-        });
+        }, this);
+
         this.overlayNode = overlay;
     }
 
     private removeOverlay(): void {
-        if (this.overlayNode && cc.isValid(this.overlayNode)) {
+        if (this.overlayNode && isValid(this.overlayNode)) {
             this.overlayNode.destroy();
             this.overlayNode = null;
         }

@@ -1,22 +1,24 @@
-const { ccclass, property } = cc._decorator;
+import { _decorator, Component, ScrollView, Prefab, Node, instantiate, isValid } from 'cc';
+
+const { ccclass, property } = _decorator;
 
 export interface ListViewAdapter {
     getItemCount(): number;
-    createItem(index: number): cc.Node;
-    updateItem(item: cc.Node, index: number): void;
+    createItem(index: number): Node;
+    updateItem(item: Node, index: number): void;
 }
 
 @ccclass
-export default class ListView extends cc.Component {
-    @property(cc.ScrollView)
-    scrollView: cc.ScrollView = null;
+export default class ListView extends Component {
+    @property(ScrollView)
+    scrollView: ScrollView = null;
 
-    @property(cc.Prefab)
-    itemPrefab: cc.Prefab = null;
+    @property(Prefab)
+    itemPrefab: Prefab = null;
 
     private adapter: ListViewAdapter = null;
-    private itemPool: cc.Node[] = [];
-    private currentItems: cc.Node[] = [];
+    private itemPool: Node[] = [];
+    private currentItems: Node[] = [];
 
     public initialize(adapter: ListViewAdapter): void {
         this.adapter = adapter;
@@ -40,12 +42,12 @@ export default class ListView extends cc.Component {
         }
     }
 
-    private createItem(index: number): cc.Node {
-        let item: cc.Node = null;
+    private createItem(index: number): Node {
+        let item: Node = null;
         if (this.itemPool.length > 0) {
             item = this.itemPool.pop();
         } else {
-            item = cc.instantiate(this.itemPrefab);
+            item = instantiate(this.itemPrefab);
         }
         item.active = true;
         item.name = `item-${index}`;
@@ -54,7 +56,7 @@ export default class ListView extends cc.Component {
 
     public clear(): void {
         this.currentItems.forEach((item) => {
-            if (cc.isValid(item)) {
+            if (isValid(item)) {
                 item.destroy();
             }
         });

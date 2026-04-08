@@ -19,6 +19,13 @@ export const PanelConfig = {
         description: "UI 框架示例面板",
     } as PanelPackage,
 
+    BackpackPanel: {
+        scriptName: "BackpackPanel",
+        prefabPath: "backpack/Bag",
+        category: "backpack",
+        description: "背包弹窗测试面板",
+    } as PanelPackage,
+
     // 示例：通用弹窗
     // ConfirmPanel: {
     //     scriptName: "ConfirmPanel",
